@@ -1,5 +1,6 @@
 package com.ecommerce.backend.service;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.ecommerce.backend.config.JwtUtil;
 import com.ecommerce.backend.dto.UserRequestDTO;
 import com.ecommerce.backend.dto.UserResponseDTO;
@@ -14,6 +15,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Service
 public class UserService {
+
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     private final UserRepository userRepository;
 
@@ -35,9 +38,10 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            logger.error("Invalid password for email: {}", request.getEmail());
             throw new InvalidCredentialsException("Invalid password");
         }
-
+        logger.info("Login attempt for email: {}", request.getEmail());
         return jwtUtil.generateToken(user.getEmail());
     }
 //    public UserResponseDTO login(LoginRequestDTO request) {
@@ -65,6 +69,7 @@ public class UserService {
                 .build();
 
         User savedUser = userRepository.save(user);
+        logger.info("Registering user with email: {}", request.getEmail());
 
         return UserResponseDTO.builder()
                 .id(savedUser.getId())
