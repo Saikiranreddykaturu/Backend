@@ -1,4 +1,5 @@
 package com.ecommerce.backend.service;
+import com.ecommerce.backend.entity.Role;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.ecommerce.backend.config.JwtUtil;
@@ -42,7 +43,7 @@ public class UserService {
             throw new InvalidCredentialsException("Invalid password");
         }
         logger.info("Login attempt for email: {}", request.getEmail());
-        return jwtUtil.generateToken(user.getEmail());
+        return jwtUtil.generateToken(user.getEmail(), user.getRole().name());
     }
 //    public UserResponseDTO login(LoginRequestDTO request) {
 //
@@ -65,7 +66,8 @@ public class UserService {
         User user = User.builder()
                 .name(request.getName())
                 .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword())) // 🔐 ENCRYPT
+                .password(passwordEncoder.encode(request.getPassword()))
+                .role(Role.USER) // 👈 default role
                 .build();
 
         User savedUser = userRepository.save(user);

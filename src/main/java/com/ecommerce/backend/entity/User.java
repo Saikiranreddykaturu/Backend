@@ -5,6 +5,9 @@ import lombok.*;
 
 import java.util.UUID;
 import org.hibernate.annotations.UuidGenerator;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+
 
 
 
@@ -18,11 +21,13 @@ import org.hibernate.annotations.UuidGenerator;
 @Table(name = "users")
 public class User {
 
+
     @Id
     @GeneratedValue
     @UuidGenerator
     private UUID id;
-
+    @Enumerated(EnumType.STRING)
+    private Role role;
     private String name;
     private String email;
     private String password;
