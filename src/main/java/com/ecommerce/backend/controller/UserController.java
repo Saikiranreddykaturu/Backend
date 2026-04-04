@@ -1,13 +1,14 @@
 package com.ecommerce.backend.controller;
 
-import com.ecommerce.backend.dto.LoginRequestDTO;
-import com.ecommerce.backend.dto.UserRequestDTO;
-import com.ecommerce.backend.dto.UserResponseDTO;
+import com.ecommerce.backend.dto.*;
 import com.ecommerce.backend.entity.User;
 import com.ecommerce.backend.service.UserService;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import com.ecommerce.backend.dto.LoginRequestDTO;
+
+import java.util.Map;
+
 @RestController
 @RequestMapping("/users")
 public class UserController {
@@ -26,7 +27,7 @@ public class UserController {
 
 
     @PostMapping("/login")
-    public String login(@RequestBody LoginRequestDTO request) {
+    public AuthResponseDTO login(@RequestBody LoginRequestDTO request) {
         return userService.login(request);
     }
 }
