@@ -43,4 +43,16 @@ public class AuthController {
 
         return Map.of("accessToken", newAccessToken);
     }
+    @PostMapping("/logout")
+    public String logout(@RequestBody Map<String, String> request) {
+
+        String refreshToken = request.get("refreshToken");
+
+        RefreshToken token = refreshTokenRepository.findByToken(refreshToken)
+                .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
+
+        refreshTokenRepository.delete(token);
+
+        return "Logged out successfully";
+    }
 }
