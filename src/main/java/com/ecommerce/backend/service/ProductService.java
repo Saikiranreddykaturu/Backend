@@ -50,6 +50,53 @@ public class ProductService {
         return mapToDTO(product);
     }
 
+    public void deleteProductById(UUID id){
+        if (!productRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Product not found");
+        }
+        productRepository.deleteById(id);
+
+    }
+    public ProductResponseDTO updateProduct(UUID id, ProductRequestDTO request) {
+
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+
+        product.setName(request.getName());
+        product.setDescription(request.getDescription());
+        product.setPrice(request.getPrice());
+        product.setStock(request.getStock());
+
+        Product updated = productRepository.save(product);
+
+        return mapToDTO(updated);
+    }
+    public ProductResponseDTO partialUpdate(UUID id, ProductUpdateDTO request) {
+
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+
+        if (request.getName() != null) {
+            product.setName(request.getName());
+        }
+
+        if (request.getDescription() != null) {
+            product.setDescription(request.getDescription());
+        }
+
+        if (request.getPrice() != null) {
+            product.setPrice(request.getPrice());
+        }
+
+        if (request.getStock() != null) {
+            product.setStock(request.getStock());
+        }
+
+        Product updated = productRepository.save(product);
+
+        return mapToDTO(updated);
+    }
+
     private ProductResponseDTO mapToDTO(Product product) {
         return ProductResponseDTO.builder()
                 .id(product.getId())

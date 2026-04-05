@@ -1,5 +1,5 @@
 package com.ecommerce.backend.controller;
-
+import org.springframework.http.ResponseEntity;
 import com.ecommerce.backend.dto.*;
 import com.ecommerce.backend.service.ProductService;
 import jakarta.validation.Valid;
@@ -32,4 +32,19 @@ public class ProductController {
     public ProductResponseDTO getProduct(@PathVariable UUID id) {
         return productService.getProductById(id);
     }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteProduct(@PathVariable UUID id){
+        return ResponseEntity.ok("Product deleted Successfully") ;
+    }
+    @PutMapping("/{id}")
+    public ProductResponseDTO updateProduct(@PathVariable UUID id,
+                                            @Valid @RequestBody ProductRequestDTO request) {
+        return productService.updateProduct(id, request);
+    }
+    @PatchMapping("/{id}")
+    public ProductResponseDTO partialUpdate(@PathVariable UUID id,
+                                            @RequestBody ProductUpdateDTO request) {
+        return productService.partialUpdate(id, request);
+    }
+
 }
