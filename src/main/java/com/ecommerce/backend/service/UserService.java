@@ -58,6 +58,10 @@ public class UserService {
                 .refreshToken(refreshToken.getToken())
                 .build();
     }
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    }
 
 
     public UserResponseDTO registerUser(UserRequestDTO request) {

@@ -4,6 +4,7 @@ package com.ecommerce.backend.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -31,9 +32,22 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/users/register", "/users/login","/auth/refresh","/auth/logout").permitAll()
-                        .requestMatchers("/admin/**","/products/**").hasRole("ADMIN")
-                        .requestMatchers("/user/**").hasRole("USER")
+
+                        // Public APIs
+                        .requestMatchers("/users/register", "/users/login", "/auth/refresh", "/auth/logout").permitAll()
+
+                        // Product APIs (READ → USER + ADMIN)
+                        .requestMatchers(HttpMethod.GET, "/products/**").hasAnyRole("USER", "ADMIN")
+
+                        // Product APIs (WRITE → ADMIN only)
+                        .requestMatchers(HttpMethod.POST, "/products/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/products/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/products/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/products/**").hasRole("ADMIN")
+
+                        // Cart APIs (USER)
+                        .requestMatchers("/cart/**").hasRole("USER")
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
