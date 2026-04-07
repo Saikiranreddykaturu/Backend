@@ -5,6 +5,7 @@ import com.ecommerce.backend.dto.*;
 import com.ecommerce.backend.service.ProductService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -52,6 +53,10 @@ public class ProductController {
     public ProductResponseDTO partialUpdate(@PathVariable UUID id,
                                             @RequestBody ProductUpdateDTO request) {
         return productService.partialUpdate(id, request);
+    }
+    @PostMapping("/upload")
+    public BulkUploadResponseDTO uploadProducts(@RequestParam("file") MultipartFile file) {
+        return productService.uploadProducts(file);
     }
 
 }
