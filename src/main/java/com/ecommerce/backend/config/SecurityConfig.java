@@ -35,7 +35,7 @@ public class SecurityConfig {
 
                         // Public APIs
                         .requestMatchers("/users/register", "/users/login", "/auth/refresh").permitAll()
-
+                        .requestMatchers("/auth/logout").hasAnyRole("USER", "ADMIN")
                         // Product APIs (READ → USER + ADMIN)
                         .requestMatchers(HttpMethod.GET, "/products/**").hasAnyRole("USER", "ADMIN")
 
