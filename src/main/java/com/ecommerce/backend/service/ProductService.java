@@ -4,6 +4,10 @@ import com.ecommerce.backend.dto.*;
 import com.ecommerce.backend.entity.Product;
 import com.ecommerce.backend.exception.ResourceNotFoundException;
 import com.ecommerce.backend.repository.ProductRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -35,11 +39,21 @@ public class ProductService {
         return mapToDTO(saved);
     }
 
-    public List<ProductResponseDTO> getAllProducts() {
-        return productRepository.findAll()
-                .stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
+    public Page<ProductResponseDTO> getProducts(
+            int page,
+            int size,
+            String sortBy,
+            String direction
+    ) {
+
+        Sort sort = direction.equalsIgnoreCase("desc")
+                ? Sort.by(sortBy).descending()
+                : Sort.by(sortBy).ascending();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        return productRepository.findAll(pageable)
+                .map(this::mapToDTO);
     }
 
     public ProductResponseDTO getProductById(UUID id) {

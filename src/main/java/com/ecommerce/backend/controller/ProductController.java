@@ -1,4 +1,5 @@
 package com.ecommerce.backend.controller;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import com.ecommerce.backend.dto.*;
 import com.ecommerce.backend.service.ProductService;
@@ -23,9 +24,15 @@ public class ProductController {
         return productService.createProduct(request);
     }
 
+
     @GetMapping
-    public List<ProductResponseDTO> getAllProducts() {
-        return productService.getAllProducts();
+    public Page<ProductResponseDTO> getProducts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String direction
+    ) {
+        return productService.getProducts(page, size, sortBy, direction);
     }
 
     @GetMapping("/{id}")

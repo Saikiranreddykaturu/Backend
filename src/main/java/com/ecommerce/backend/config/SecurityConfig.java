@@ -47,6 +47,7 @@ public class SecurityConfig {
 
                         // Cart APIs (USER)
                         .requestMatchers("/cart/**").hasRole("USER")
+                        .requestMatchers("/orders/**").hasRole("USER")
 
                         .anyRequest().authenticated()
                 )
