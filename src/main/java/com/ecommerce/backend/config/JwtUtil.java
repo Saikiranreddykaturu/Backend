@@ -2,18 +2,24 @@ package com.ecommerce.backend.config;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 @Component
 public class JwtUtil {
 
-    private final String SECRET = "mysecretkeymysecretkeymysecretkey"; // 32+ chars
+    private final String secret;
+
+    public JwtUtil(@Value("${app.jwt.secret}") String secret) {
+        this.secret = secret;
+    }
 
     private Key getSigningKey() {
-        return Keys.hmacShaKeyFor(SECRET.getBytes());
+        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
     public Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()

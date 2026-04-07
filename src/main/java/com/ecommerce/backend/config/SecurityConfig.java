@@ -34,7 +34,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
 
                         // Public APIs
-                        .requestMatchers("/users/register", "/users/login", "/auth/refresh", "/auth/logout").permitAll()
+                        .requestMatchers("/users/register", "/users/login", "/auth/refresh").permitAll()
 
                         // Product APIs (READ → USER + ADMIN)
                         .requestMatchers(HttpMethod.GET, "/products/**").hasAnyRole("USER", "ADMIN")
