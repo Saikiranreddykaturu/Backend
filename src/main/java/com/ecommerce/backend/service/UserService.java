@@ -1,22 +1,21 @@
 package com.ecommerce.backend.service;
-import com.ecommerce.backend.dto.AuthResponseDTO;
-import com.ecommerce.backend.entity.RefreshToken;
-import com.ecommerce.backend.entity.Role;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import com.ecommerce.backend.config.JwtUtil;
+import com.ecommerce.backend.dto.AuthResponseDTO;
+import com.ecommerce.backend.dto.LoginRequestDTO;
 import com.ecommerce.backend.dto.UserRequestDTO;
 import com.ecommerce.backend.dto.UserResponseDTO;
+import com.ecommerce.backend.entity.RefreshToken;
+import com.ecommerce.backend.entity.Role;
 import com.ecommerce.backend.entity.User;
 import com.ecommerce.backend.exception.InvalidCredentialsException;
+import com.ecommerce.backend.exception.ResourceAlreadyExistsException;
 import com.ecommerce.backend.exception.ResourceNotFoundException;
 import com.ecommerce.backend.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import com.ecommerce.backend.dto.LoginRequestDTO;
-import org.springframework.security.crypto.password.PasswordEncoder;
-
-import java.util.Map;
 
 @Service
 public class UserService {
@@ -65,6 +64,9 @@ public class UserService {
 
 
     public UserResponseDTO registerUser(UserRequestDTO request) {
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new ResourceAlreadyExistsException("Email is already registered");
+        }
 
         User user = User.builder()
                 .name(request.getName())

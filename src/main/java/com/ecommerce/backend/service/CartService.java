@@ -6,6 +6,7 @@ import com.ecommerce.backend.entity.Cart;
 import com.ecommerce.backend.entity.CartItem;
 import com.ecommerce.backend.entity.Product;
 import com.ecommerce.backend.entity.User;
+import com.ecommerce.backend.exception.BadRequestException;
 import com.ecommerce.backend.exception.ResourceNotFoundException;
 import com.ecommerce.backend.repository.CartRepository;
 import com.ecommerce.backend.repository.ProductRepository;
@@ -33,6 +34,9 @@ public class CartService{
         return mapCart(cart);
     }
     public CartResponseDTO addToCart(User user, UUID productId, int quantity) {
+        if (quantity <= 0) {
+            throw new BadRequestException("Quantity must be greater than 0");
+        }
 
     Cart cart = cartRepository.findByUser(user)
             .orElseGet(() -> cartRepository.save(
@@ -50,8 +54,15 @@ public class CartService{
 
     if (existingItem.isPresent()) {
         CartItem item = existingItem.get();
-        item.setQuantity(item.getQuantity() + quantity);
+        int updatedQuantity = item.getQuantity() + quantity;
+        if (updatedQuantity > product.getStock()) {
+            throw new BadRequestException("Requested quantity exceeds available stock");
+        }
+        item.setQuantity(updatedQuantity);
     } else {
+        if (quantity > product.getStock()) {
+            throw new BadRequestException("Requested quantity exceeds available stock");
+        }
         CartItem newItem = CartItem.builder()
                 .cart(cart)
                 .product(product)
@@ -79,6 +90,9 @@ public class CartService{
     }
 
     public CartResponseDTO updateQuantity(User user, UUID productId, int quantity) {
+        if (quantity <= 0) {
+            throw new BadRequestException("Quantity must be greater than 0");
+        }
 
         Cart cart = cartRepository.findByUser(user)
                 .orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
@@ -88,11 +102,10 @@ public class CartService{
                 .findFirst()
                 .orElseThrow(() -> new ResourceNotFoundException("Item not found"));
 
-        if (quantity <= 0) {
-            cart.getItems().remove(item);
-        } else {
-            item.setQuantity(quantity);
+        if (quantity > item.getProduct().getStock()) {
+            throw new BadRequestException("Requested quantity exceeds available stock");
         }
+        item.setQuantity(quantity);
 
         Cart updated = cartRepository.save(cart);
 

@@ -3,6 +3,8 @@ package com.ecommerce.backend.service;
 import com.ecommerce.backend.dto.OrderItemDTO;
 import com.ecommerce.backend.dto.OrderResponseDTO;
 import com.ecommerce.backend.entity.*;
+import com.ecommerce.backend.exception.BadRequestException;
+import com.ecommerce.backend.exception.ResourceNotFoundException;
 import com.ecommerce.backend.repository.CartRepository;
 import com.ecommerce.backend.repository.OrderRepository;
 import com.ecommerce.backend.repository.ProductRepository;
@@ -11,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -32,10 +35,10 @@ public class OrderService {
     public OrderResponseDTO placeOrder(User user) {
 
         Cart cart = cartRepository.findByUser(user)
-                .orElseThrow(() -> new RuntimeException("Cart not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
 
         if (cart.getItems().isEmpty()) {
-            throw new RuntimeException("Cart is empty");
+            throw new BadRequestException("Cart is empty");
         }
 
         Order order = Order.builder()
@@ -44,6 +47,7 @@ public class OrderService {
                 .status(OrderStatus.PLACED)
                 .build();
 
+        List<Product> updatedProducts = new ArrayList<>();
 
         for (CartItem cartItem : cart.getItems()) {
 
@@ -51,11 +55,12 @@ public class OrderService {
 
             // 🔥 Stock check
             if (product.getStock() < cartItem.getQuantity()) {
-                throw new RuntimeException("Not enough stock for " + product.getName());
+                throw new BadRequestException("Not enough stock for " + product.getName());
             }
 
             // 🔥 Reduce stock
             product.setStock(product.getStock() - cartItem.getQuantity());
+            updatedProducts.add(product);
 
             OrderItem orderItem = OrderItem.builder()
                     .order(order)
@@ -70,9 +75,10 @@ public class OrderService {
 
         // Save order
 
-
+        productRepository.saveAll(updatedProducts);
         Order saved = orderRepository.save(order);
         cart.getItems().clear();
+        cartRepository.save(cart);
 
         return mapOrder(saved);
     }
