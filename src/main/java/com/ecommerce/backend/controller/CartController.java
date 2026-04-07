@@ -2,11 +2,11 @@ package com.ecommerce.backend.controller;
 
 import com.ecommerce.backend.dto.CartResponseDTO;
 import com.ecommerce.backend.dto.UpdateQuantityDTO;
-import com.ecommerce.backend.entity.Cart;
 import com.ecommerce.backend.entity.User;
 import com.ecommerce.backend.service.CartService;
 import com.ecommerce.backend.service.UserService;
 
+import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -55,7 +55,7 @@ public class CartController {
         return cartService.removeItem(user, productId);
     }
     @PutMapping("/update")
-    public CartResponseDTO updateQuantity(@RequestBody UpdateQuantityDTO request,
+    public CartResponseDTO updateQuantity(@Valid @RequestBody UpdateQuantityDTO request,
                                           Authentication authentication) {
 
         String email = authentication.getName();

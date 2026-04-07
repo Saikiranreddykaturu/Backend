@@ -2,6 +2,7 @@ package com.ecommerce.backend.service;
 
 import com.ecommerce.backend.entity.RefreshToken;
 import com.ecommerce.backend.entity.User;
+import com.ecommerce.backend.exception.InvalidCredentialsException;
 import com.ecommerce.backend.repository.RefreshTokenRepository;
 import org.springframework.stereotype.Service;
 
@@ -32,7 +33,7 @@ public class RefreshTokenService {
 
         if (token.getExpiryDate().isBefore(Instant.now())) {
             refreshTokenRepository.delete(token);
-            throw new RuntimeException("Refresh token expired");
+            throw new InvalidCredentialsException("Refresh token expired");
         }
 
         return token;

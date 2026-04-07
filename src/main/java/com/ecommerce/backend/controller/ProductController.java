@@ -52,7 +52,7 @@ public class ProductController {
     }
     @PatchMapping("/{id}")
     public ProductResponseDTO partialUpdate(@PathVariable UUID id,
-                                            @RequestBody ProductUpdateDTO request) {
+                                            @Valid @RequestBody ProductUpdateDTO request) {
         return productService.partialUpdate(id, request);
     }
     @PostMapping("/upload")
