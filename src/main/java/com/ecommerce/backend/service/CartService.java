@@ -10,14 +10,19 @@ import com.ecommerce.backend.exception.BadRequestException;
 import com.ecommerce.backend.exception.ResourceNotFoundException;
 import com.ecommerce.backend.repository.CartRepository;
 import com.ecommerce.backend.repository.ProductRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
 @Service
 public class CartService{
+    private static final Logger logger = LoggerFactory.getLogger(CartService.class);
+
     private final CartRepository cartRepository;
     private final ProductRepository productRepository;
 
@@ -27,6 +32,7 @@ public class CartService{
 
     }
     public CartResponseDTO getCart(User user) {
+        logger.debug("Fetching cart for user {}", user.getEmail());
 
         Cart cart = cartRepository.findByUser(user)
                 .orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
@@ -34,6 +40,7 @@ public class CartService{
         return mapCart(cart);
     }
     public CartResponseDTO addToCart(User user, UUID productId, int quantity) {
+        logger.info("Adding product {} x{} to cart for user {}", productId, quantity, user.getEmail());
         if (quantity <= 0) {
             throw new BadRequestException("Quantity must be greater than 0");
         }
@@ -76,6 +83,7 @@ public class CartService{
         return mapCart(savedCart);
     }
     public CartResponseDTO removeItem(User user, UUID productId) {
+        logger.info("Removing product {} from cart for user {}", productId, user.getEmail());
 
         Cart cart = cartRepository.findByUser(user)
                 .orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
@@ -90,6 +98,7 @@ public class CartService{
     }
 
     public CartResponseDTO updateQuantity(User user, UUID productId, int quantity) {
+        logger.info("Updating product {} quantity to {} in cart for user {}", productId, quantity, user.getEmail());
         if (quantity <= 0) {
             throw new BadRequestException("Quantity must be greater than 0");
         }

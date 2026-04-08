@@ -2,6 +2,7 @@ package com.ecommerce.backend.service;
 
 import com.ecommerce.backend.dto.*;
 import com.ecommerce.backend.entity.Product;
+import com.ecommerce.backend.exception.BadRequestException;
 import com.ecommerce.backend.exception.ResourceNotFoundException;
 import com.ecommerce.backend.repository.ProductRepository;
 import org.springframework.data.domain.Page;
@@ -10,6 +11,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.apache.poi.ss.usermodel.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
@@ -22,6 +25,8 @@ import java.util.stream.Collectors;
 @Service
 public class ProductService {
 
+    private static final Logger logger = LoggerFactory.getLogger(ProductService.class);
+
     private final ProductRepository productRepository;
 
     public ProductService(ProductRepository productRepository) {
@@ -29,6 +34,7 @@ public class ProductService {
     }
 
     public ProductResponseDTO createProduct(ProductRequestDTO request) {
+        logger.info("Creating product {}", request.getName());
 
         Product product = Product.builder()
                 .name(request.getName())
@@ -45,9 +51,10 @@ public class ProductService {
 
 
     public BulkUploadResponseDTO uploadProducts(MultipartFile file) {
+        logger.info("Bulk product upload started for file {}", file.getOriginalFilename());
 
         if (!file.getOriginalFilename().endsWith(".xlsx")) {
-            throw new RuntimeException("Invalid file format. Only .xlsx allowed");
+            throw new BadRequestException("Invalid file format. Only .xlsx allowed");
         }
 
         List<Product> validProducts = new ArrayList<>();
@@ -94,12 +101,14 @@ public class ProductService {
                     validProducts.add(product);
 
                 } catch (Exception e) {
+                    logger.warn("Skipping invalid product row {}: {}", i + 1, e.getMessage());
                     errors.add("Row " + (i + 1) + ": " + e.getMessage());
                 }
             }
 
             // 🔥 Batch insert
             productRepository.saveAll(validProducts);
+            logger.info("Bulk upload completed with {} success and {} failures", validProducts.size(), errors.size());
 
             return BulkUploadResponseDTO.builder()
                     .totalRows(totalRows)
@@ -109,7 +118,8 @@ public class ProductService {
                     .build();
 
         } catch (Exception e) {
-            throw new RuntimeException("Failed to process file");
+            logger.error("Failed to process bulk upload file {}", file.getOriginalFilename(), e);
+            throw new BadRequestException("Failed to process file");
         }
     }
     private String getStringCell(Cell cell) {
@@ -142,6 +152,7 @@ public class ProductService {
     }
 
     public ProductResponseDTO getProductById(UUID id) {
+        logger.debug("Fetching product {}", id);
 
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
@@ -150,6 +161,7 @@ public class ProductService {
     }
 
     public void deleteProductById(UUID id){
+        logger.info("Deleting product {}", id);
         if (!productRepository.existsById(id)) {
             throw new ResourceNotFoundException("Product not found");
         }
@@ -157,6 +169,7 @@ public class ProductService {
 
     }
     public ProductResponseDTO updateProduct(UUID id, ProductRequestDTO request) {
+        logger.info("Updating product {}", id);
 
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
@@ -171,6 +184,7 @@ public class ProductService {
         return mapToDTO(updated);
     }
     public ProductResponseDTO partialUpdate(UUID id, ProductUpdateDTO request) {
+        logger.info("Partially updating product {}", id);
 
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found"));

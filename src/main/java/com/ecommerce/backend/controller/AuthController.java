@@ -9,6 +9,8 @@ import com.ecommerce.backend.service.RefreshTokenService;
 import com.ecommerce.backend.config.JwtUtil;
 import com.ecommerce.backend.repository.RefreshTokenRepository;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,6 +19,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
+
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     private final RefreshTokenRepository refreshTokenRepository;
     private final RefreshTokenService refreshTokenService;
@@ -34,6 +38,7 @@ public class AuthController {
     public Map<String, String> refresh(@Valid @RequestBody RefreshRequestDTO request) {
 
         String requestToken = request.getRefreshToken();
+        logger.info("Processing refresh token request");
 
         RefreshToken refreshToken = refreshTokenRepository.findByToken(requestToken)
                 .orElseThrow(() -> new InvalidCredentialsException("Invalid refresh token"));
@@ -53,6 +58,7 @@ public class AuthController {
 
         String email = authentication.getName();
         String refreshToken = request.getRefreshToken();
+        logger.info("Processing logout request for user {}", email);
 
         RefreshToken token = refreshTokenRepository.findByToken(refreshToken)
                 .orElseThrow(() -> new InvalidCredentialsException("Invalid refresh token"));

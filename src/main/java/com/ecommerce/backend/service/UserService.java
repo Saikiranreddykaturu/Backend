@@ -41,11 +41,13 @@ public class UserService {
     }
 
     public AuthResponseDTO login(LoginRequestDTO request) {
+        logger.info("Login attempt for email {}", request.getEmail());
 
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            logger.warn("Invalid password for email {}", request.getEmail());
             throw new InvalidCredentialsException("Invalid password");
         }
 
@@ -58,6 +60,7 @@ public class UserService {
                 .build();
     }
     public User findByEmail(String email) {
+        logger.debug("Fetching user by email {}", email);
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
@@ -76,7 +79,7 @@ public class UserService {
                 .build();
 
         User savedUser = userRepository.save(user);
-        logger.info("Registering user with email: {}", request.getEmail());
+        logger.info("Registered user with email {}", request.getEmail());
 
         return UserResponseDTO.builder()
                 .id(savedUser.getId())

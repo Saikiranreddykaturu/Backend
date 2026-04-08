@@ -8,6 +8,8 @@ import com.ecommerce.backend.exception.ResourceNotFoundException;
 import com.ecommerce.backend.repository.CartRepository;
 import com.ecommerce.backend.repository.OrderRepository;
 import com.ecommerce.backend.repository.ProductRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +20,8 @@ import java.util.List;
 
 @Service
 public class OrderService {
+
+    private static final Logger logger = LoggerFactory.getLogger(OrderService.class);
 
     private final CartRepository cartRepository;
     private final ProductRepository productRepository;
@@ -33,6 +37,7 @@ public class OrderService {
 
     @Transactional
     public OrderResponseDTO placeOrder(User user) {
+        logger.info("Placing order for user {}", user.getEmail());
 
         Cart cart = cartRepository.findByUser(user)
                 .orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
@@ -55,6 +60,7 @@ public class OrderService {
 
             // 🔥 Stock check
             if (product.getStock() < cartItem.getQuantity()) {
+                logger.warn("Insufficient stock for product {} while ordering for user {}", product.getName(), user.getEmail());
                 throw new BadRequestException("Not enough stock for " + product.getName());
             }
 
@@ -79,6 +85,7 @@ public class OrderService {
         Order saved = orderRepository.save(order);
         cart.getItems().clear();
         cartRepository.save(cart);
+        logger.info("Placed order {} for user {}", saved.getId(), user.getEmail());
 
         return mapOrder(saved);
     }
@@ -111,6 +118,7 @@ public class OrderService {
                 .build();
     }
     public List<OrderResponseDTO> getOrders(User user) {
+        logger.debug("Fetching orders for user {}", user.getEmail());
 
         return orderRepository.findByUser(user)
                 .stream()
