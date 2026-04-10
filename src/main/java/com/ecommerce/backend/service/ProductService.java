@@ -5,6 +5,10 @@ import com.ecommerce.backend.entity.Product;
 import com.ecommerce.backend.exception.BadRequestException;
 import com.ecommerce.backend.exception.ResourceNotFoundException;
 import com.ecommerce.backend.repository.ProductRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -151,6 +155,7 @@ public class ProductService {
                 .map(this::mapToDTO);
     }
 
+    @Cacheable(value = "productById", key = "#id")
     public ProductResponseDTO getProductById(UUID id) {
         logger.debug("Fetching product {}", id);
 
@@ -160,6 +165,9 @@ public class ProductService {
         return mapToDTO(product);
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "productById", key = "#id")
+    })
     public void deleteProductById(UUID id){
         logger.info("Deleting product {}", id);
         if (!productRepository.existsById(id)) {
@@ -168,6 +176,9 @@ public class ProductService {
         productRepository.deleteById(id);
 
     }
+    @Caching(
+            put = @CachePut(value = "productById", key = "#id")
+    )
     public ProductResponseDTO updateProduct(UUID id, ProductRequestDTO request) {
         logger.info("Updating product {}", id);
 
@@ -183,6 +194,9 @@ public class ProductService {
 
         return mapToDTO(updated);
     }
+    @Caching(
+            put = @CachePut(value = "productById", key = "#id")
+    )
     public ProductResponseDTO partialUpdate(UUID id, ProductUpdateDTO request) {
         logger.info("Partially updating product {}", id);
 

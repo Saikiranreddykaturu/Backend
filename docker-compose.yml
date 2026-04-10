@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
 
   db:
@@ -12,6 +10,12 @@ services:
     ports:
       - "5432:5432"
 
+  redis:
+    image: redis:7.4-alpine
+    container_name: ecommerce-redis
+    ports:
+      - "6379:6379"
+
   app:
     build: .
     container_name: ecommerce-app
@@ -19,6 +23,7 @@ services:
       - "8080:8080"
     depends_on:
       - db
+      - redis
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/ecommerce_db
       SPRING_DATASOURCE_USERNAME: postgres
@@ -27,3 +32,5 @@ services:
       DB_USERNAME: postgres
       DB_PASSWORD: password
       JWT_SECRET: mysecretkeymysecretkeymysecretkey
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
