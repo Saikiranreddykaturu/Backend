@@ -104,4 +104,42 @@ class OrderServiceTest {
         assertEquals(1, productCaptor.getValue().size());
         assertEquals(product.getId(), productCaptor.getValue().get(0).getId());
     }
+
+    @Test
+    void getOrdersFetchesItemsAndProductsInOneRepositoryCall() {
+        User user = User.builder()
+                .id(UUID.randomUUID())
+                .email("alice@example.com")
+                .role(Role.USER)
+                .build();
+        Product product = Product.builder()
+                .id(UUID.randomUUID())
+                .name("Phone")
+                .price(BigDecimal.valueOf(250))
+                .stock(5)
+                .createdAt(Instant.now())
+                .build();
+        Order order = Order.builder()
+                .id(UUID.randomUUID())
+                .user(user)
+                .createdAt(Instant.now())
+                .status(OrderStatus.PLACED)
+                .items(new ArrayList<>())
+                .build();
+        order.getItems().add(com.ecommerce.backend.entity.OrderItem.builder()
+                .order(order)
+                .product(product)
+                .quantity(2)
+                .price(product.getPrice())
+                .build());
+
+        when(orderRepository.findWithItemsAndProductsByUser(user)).thenReturn(List.of(order));
+
+        List<OrderResponseDTO> orders = orderService.getOrders(user);
+
+        assertEquals(1, orders.size());
+        assertEquals(BigDecimal.valueOf(500), orders.get(0).getTotalAmount());
+        assertEquals(product.getId(), orders.get(0).getItems().get(0).getProductId());
+        verify(orderRepository).findWithItemsAndProductsByUser(user);
+    }
 }

@@ -117,10 +117,11 @@ public class OrderService {
                 .totalAmount(total)
                 .build();
     }
+    @Transactional(readOnly = true)
     public List<OrderResponseDTO> getOrders(User user) {
         logger.debug("Fetching orders for user {}", user.getEmail());
 
-        return orderRepository.findByUser(user)
+        return orderRepository.findWithItemsAndProductsByUser(user)
                 .stream()
                 .map(this::mapOrder)
                 .toList();
