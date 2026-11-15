@@ -7,11 +7,25 @@ const STORAGE_KEYS = {
   userEmail: 'ecom-user-email',
 }
 
+const EMPTY_PRODUCT_FORM = { name: '', description: '', price: '', stock: '' }
+
 function getStoredSession() {
   return {
     accessToken: localStorage.getItem(STORAGE_KEYS.accessToken) ?? '',
     refreshToken: localStorage.getItem(STORAGE_KEYS.refreshToken) ?? '',
     userEmail: localStorage.getItem(STORAGE_KEYS.userEmail) ?? '',
+  }
+}
+
+function getTokenRole(token) {
+  if (!token) return ''
+
+  try {
+    const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
+    const decodedPayload = atob(payload.padEnd(Math.ceil(payload.length / 4) * 4, '='))
+    return JSON.parse(decodedPayload).role ?? ''
+  } catch {
+    return ''
   }
 }
 
@@ -68,6 +82,10 @@ function App() {
   const [authForm, setAuthForm] = useState({ name: '', email: '', password: '' })
   const [products, setProducts] = useState([])
   const [productPage, setProductPage] = useState({ page: 0, size: 5, totalPages: 0, totalElements: 0 })
+  const [productForm, setProductForm] = useState(EMPTY_PRODUCT_FORM)
+  const [editingProductId, setEditingProductId] = useState(null)
+  const [isSavingProduct, setIsSavingProduct] = useState(false)
+  const [deletingProductId, setDeletingProductId] = useState(null)
   const [cart, setCart] = useState(null)
   const [orders, setOrders] = useState([])
   const [isBootstrapping, setIsBootstrapping] = useState(false)
@@ -79,6 +97,7 @@ function App() {
   const refreshPromiseRef = useRef(null)
 
   const isLoggedIn = Boolean(accessToken)
+  const isAdmin = getTokenRole(accessToken) === 'ADMIN'
 
   function extractErrorMessage(payload) {
     if (!payload) return 'Request failed'
@@ -288,6 +307,78 @@ function App() {
     }
   }
 
+  function handleEditProduct(product) {
+    resetFeedback()
+    setEditingProductId(product.id)
+    setProductForm({
+      name: product.name,
+      description: product.description ?? '',
+      price: String(product.price),
+      stock: String(product.stock),
+    })
+    setActivePanel('admin')
+  }
+
+  function handleCancelProductEdit() {
+    setEditingProductId(null)
+    setProductForm(EMPTY_PRODUCT_FORM)
+  }
+
+  async function handleProductSubmit(event) {
+    event.preventDefault()
+    resetFeedback()
+
+    const productRequest = {
+      name: productForm.name.trim(),
+      description: productForm.description.trim(),
+      price: Number(productForm.price),
+      stock: Number(productForm.stock),
+    }
+
+    if (!productRequest.name || !Number.isFinite(productRequest.price) || productRequest.price <= 0 || !Number.isInteger(productRequest.stock) || productRequest.stock < 0) {
+      setErrorMessage('Enter a name, a price greater than zero, and a whole-number stock of zero or more.')
+      return
+    }
+
+    setIsSavingProduct(true)
+    try {
+      const isEditing = Boolean(editingProductId)
+      await apiFetch(isEditing ? `/products/${editingProductId}` : '/products', {
+        method: isEditing ? 'PUT' : 'POST',
+        body: JSON.stringify(productRequest),
+      })
+      handleCancelProductEdit()
+      await reloadProducts()
+      setStatusMessage(isEditing ? 'Product updated.' : 'Product added.')
+    } catch (error) {
+      setErrorMessage(error.message)
+    } finally {
+      setIsSavingProduct(false)
+    }
+  }
+
+  async function handleDeleteProduct(product) {
+    if (!window.confirm(`Delete ${product.name}? This cannot be undone.`)) return
+
+    resetFeedback()
+    setDeletingProductId(product.id)
+    try {
+      await apiFetch(`/products/${product.id}`, { method: 'DELETE' })
+      if (editingProductId === product.id) handleCancelProductEdit()
+
+      if (products.length === 1 && productPage.page > 0) {
+        setProductPage((current) => ({ ...current, page: current.page - 1 }))
+      } else {
+        await reloadProducts()
+      }
+      setStatusMessage('Product deleted.')
+    } catch (error) {
+      setErrorMessage(error.message)
+    } finally {
+      setDeletingProductId(null)
+    }
+  }
+
   async function handleCartQuantity(productId, quantity) {
     resetFeedback()
     try {
@@ -331,6 +422,8 @@ function App() {
   }
 
   const cartItemCount = cart?.items?.reduce((sum, item) => sum + item.quantity, 0) ?? 0
+  const panels = isAdmin ? ['products', 'cart', 'orders', 'admin'] : ['products', 'cart', 'orders']
+  const panelLabels = { products: 'Products', cart: 'Cart', orders: 'Orders', admin: 'Admin' }
 
   return (
     <div className="app-shell">
@@ -391,9 +484,9 @@ function App() {
         </header>
 
         <nav className="panel-tabs">
-          {['products', 'cart', 'orders'].map((panel) => (
+          {panels.map((panel) => (
             <button key={panel} type="button" className={activePanel === panel ? 'active' : ''} onClick={() => setActivePanel(panel)}>
-              {panel}
+              {panelLabels[panel]}
             </button>
           ))}
         </nav>
@@ -438,6 +531,83 @@ function App() {
               </>
             )}
           </div>
+
+          {isAdmin ? (
+            <div className={`panel ${activePanel === 'admin' ? 'visible' : 'hidden'}`}>
+              <div className="panel-head">
+                <div><h3>Product administration</h3><p>Create, edit, and remove products from the catalog.</p></div>
+                <span className="admin-count">{productPage.totalElements} products</span>
+              </div>
+
+              <form className="product-form" onSubmit={handleProductSubmit}>
+                <div className="product-form-heading">
+                  <h4>{editingProductId ? 'Edit product' : 'Add a product'}</h4>
+                  {editingProductId ? <button className="ghost-button compact" type="button" onClick={handleCancelProductEdit}>Cancel edit</button> : null}
+                </div>
+                <div className="product-form-grid">
+                  <label className="product-name-field">
+                    Product name
+                    <input maxLength="255" required value={productForm.name} onChange={(event) => setProductForm((current) => ({ ...current, name: event.target.value }))} />
+                  </label>
+                  <label className="product-description-field">
+                    Description
+                    <textarea rows="3" value={productForm.description} onChange={(event) => setProductForm((current) => ({ ...current, description: event.target.value }))} />
+                  </label>
+                  <label>
+                    Price
+                    <input type="number" min="0.01" step="0.01" required value={productForm.price} onChange={(event) => setProductForm((current) => ({ ...current, price: event.target.value }))} />
+                  </label>
+                  <label>
+                    Stock
+                    <input type="number" min="0" step="1" required value={productForm.stock} onChange={(event) => setProductForm((current) => ({ ...current, stock: event.target.value }))} />
+                  </label>
+                </div>
+                <button className="primary-button" type="submit" disabled={isSavingProduct}>
+                  {isSavingProduct ? 'Saving...' : editingProductId ? 'Save changes' : 'Add product'}
+                </button>
+              </form>
+
+              <div className="admin-catalog">
+                <div className="product-form-heading">
+                  <h4>Catalog</h4>
+                  <button className="ghost-button compact" type="button" onClick={() => reloadProducts().catch((error) => setErrorMessage(error.message))} disabled={isBootstrapping}>Refresh</button>
+                </div>
+                {!products.length ? (
+                  <EmptyState title="No products on this page" body="Add a product above or change catalog pages." />
+                ) : (
+                  <div className="admin-table-wrap">
+                    <table className="admin-table">
+                      <thead>
+                        <tr><th>Product</th><th>Price</th><th>Stock</th><th>Actions</th></tr>
+                      </thead>
+                      <tbody>
+                        {products.map((product) => (
+                          <tr key={product.id}>
+                            <td><strong>{product.name}</strong><span>{product.description || 'No description'}</span></td>
+                            <td>{formatCurrency(product.price)}</td>
+                            <td>{product.stock}</td>
+                            <td>
+                              <div className="admin-actions">
+                                <button className="ghost-button compact" type="button" onClick={() => handleEditProduct(product)}>Edit</button>
+                                <button className="danger-button" type="button" onClick={() => handleDeleteProduct(product)} disabled={deletingProductId === product.id}>
+                                  {deletingProductId === product.id ? 'Deleting...' : 'Delete'}
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+                <div className="pager">
+                  <button className="ghost-button" type="button" disabled={productPage.page === 0} onClick={() => setProductPage((current) => ({ ...current, page: Math.max(0, current.page - 1) }))}>Previous</button>
+                  <span>Page {productPage.page + 1} of {Math.max(productPage.totalPages, 1)}</span>
+                  <button className="ghost-button" type="button" disabled={productPage.page + 1 >= productPage.totalPages} onClick={() => setProductPage((current) => ({ ...current, page: current.page + 1 }))}>Next</button>
+                </div>
+              </div>
+            </div>
+          ) : null}
 
           <div className={`panel ${activePanel === 'cart' ? 'visible' : 'hidden'}`}>
             <div className="panel-head">
