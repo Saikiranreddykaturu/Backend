@@ -66,7 +66,8 @@ jobs:
             echo '::error::REDIS_SKU_CAPACITY must be an integer matching the selected Redis SKU.'
             exit 1
           fi
-          az deployment group create \
+          az bicep build --file infra/main.bicep --stdout >/dev/null
+          if ! az deployment group create \
             --resource-group "$AZURE_RESOURCE_GROUP" \
             --name "$AZURE_DEPLOYMENT_NAME" \
             --template-file infra/main.bicep \
@@ -82,7 +83,21 @@ jobs:
               postgresSkuTier="$POSTGRES_SKU_TIER" \
               redisSkuName="$REDIS_SKU_NAME" \
               redisSkuFamily="$REDIS_SKU_FAMILY" \
-              redisSkuCapacity="$REDIS_SKU_CAPACITY"
+              redisSkuCapacity="$REDIS_SKU_CAPACITY"; then
+            echo '::error::Azure deployment failed. ARM deployment error:'
+            az deployment group show \
+              --resource-group "$AZURE_RESOURCE_GROUP" \
+              --name "$AZURE_DEPLOYMENT_NAME" \
+              --query properties.error \
+              --output json || true
+            echo 'ARM failed resource operations:'
+            az deployment operation group list \
+              --resource-group "$AZURE_RESOURCE_GROUP" \
+              --name "$AZURE_DEPLOYMENT_NAME" \
+              --query "[?properties.provisioningState=='Failed'].properties.statusMessage" \
+              --output json || true
+            exit 1
+          fi
           az deployment group show \
             --resource-group "$AZURE_RESOURCE_GROUP" \
             --name "$AZURE_DEPLOYMENT_NAME" \
