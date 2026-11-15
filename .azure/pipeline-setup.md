@@ -6,7 +6,7 @@ This repository deploys the React frontend and Spring Boot API as one image to A
 
 Prerequisites: Azure CLI, PowerShell 7 or Windows PowerShell, and an Azure account allowed to create managed identities, resource groups, and role assignments.
 
-Run `az login` first, then run the bootstrap script from the repository root. It uses the currently selected Azure subscription, defaults the identity resource group to `rg-ecommerce-github-identity`, and defaults the app resource group to `rg-ecommerce-production`. Those names can be overridden with script parameters. The identity and app resource groups must remain different.
+Run `az login` first, then run the bootstrap script from the repository root. It uses the currently selected Azure subscription, defaults the identity resource group to `backend`, and defaults the app resource group to `prod`. The script verifies both groups already exist; it does not create resource groups. The identity and app resource groups must remain different.
 
 ```powershell
 .\.azure\setup-azure-auth-for-pipeline.ps1 `
@@ -15,7 +15,7 @@ Run `az login` first, then run the bootstrap script from the repository root. It
 
 If the Git repository has an `origin` pointing to GitHub, the script reads `OWNER/REPOSITORY` from it. This checkout currently has no `origin`, so pass `-Repository "OWNER/REPOSITORY"` or enter it when prompted. The location must be an Azure region supported for the resources in your subscription; change `eastus2` if needed.
 
-The script creates a user-assigned managed identity in the separate identity resource group, adds a GitHub federated credential for `repo:OWNER/REPOSITORY:environment:production`, and grants the identity `Contributor` and `User Access Administrator` on the application resource group. The latter is needed because the Bicep deployment creates scoped role assignments. The Azure account running the script must have permission to grant these roles. Azure login credentials are handled by `az login`; no client secret is created or entered.
+The script creates a user-assigned managed identity in `backend`, adds a GitHub federated credential for `repo:OWNER/REPOSITORY:environment:production`, and grants the identity `Contributor` and `User Access Administrator` on `prod`. The latter is needed because the Bicep deployment creates scoped role assignments. The Azure account running the script must have permission to grant these roles. Azure login credentials are handled by `az login`; no client secret is created or entered.
 
 Copy the printed client ID, tenant ID, subscription ID, and principal ID into the GitHub variables below. Do not create a client secret; Actions authenticates with OIDC.
 
@@ -31,7 +31,7 @@ Add these environment variables:
 | `AZURE_TENANT_ID` | Tenant ID printed by the bootstrap script |
 | `AZURE_SUBSCRIPTION_ID` | Subscription ID used for the bootstrap script |
 | `AZURE_PIPELINE_IDENTITY_PRINCIPAL_ID` | Principal ID printed by the bootstrap script |
-| `AZURE_RESOURCE_GROUP` | Application resource group name |
+| `AZURE_RESOURCE_GROUP` | `prod` |
 | `AZURE_LOCATION` | Azure region selected for the deployment |
 | `AZURE_DEPLOYMENT_NAME` | Stable ARM deployment name, for example `ecommerce-production` |
 | `AZURE_CONTAINER_REGISTRY_NAME` | `registryName` output from the infrastructure deployment |

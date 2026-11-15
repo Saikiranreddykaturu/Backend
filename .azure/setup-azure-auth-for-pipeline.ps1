@@ -3,9 +3,9 @@ param(
 
     [string]$SubscriptionId,
 
-    [string]$IdentityResourceGroup = 'rg-ecommerce-github-identity',
+    [string]$IdentityResourceGroup = 'backend',
 
-    [string]$TargetResourceGroup = 'rg-ecommerce-production',
+    [string]$TargetResourceGroup = 'prod',
 
     [Parameter(Mandatory = $true)]
     [string]$Location,
@@ -55,8 +55,8 @@ function Invoke-Az {
 }
 
 Invoke-Az account set --subscription $SubscriptionId
-Invoke-Az group create --name $IdentityResourceGroup --location $Location --output none
-Invoke-Az group create --name $TargetResourceGroup --location $Location --output none
+Invoke-Az group show --name $IdentityResourceGroup --output none
+Invoke-Az group show --name $TargetResourceGroup --output none
 
 $identityJson = & az identity create `
     --name $IdentityName `
