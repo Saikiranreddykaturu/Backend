@@ -56,10 +56,10 @@ Choose region and SKUs supported by the target subscription. The checked-in `inf
 
 ## 3. Provision Azure Resources
 
-Run Actions > Infrastructure > Run workflow and approve the `production` environment deployment. The workflow deploys `infra/main.bicep`; its outputs include the ACR and Container App names. Add those output values to `AZURE_CONTAINER_REGISTRY_NAME` and `AZURE_CONTAINER_APP_NAME` in the same GitHub environment before deploying the application.
+Run Actions > Infrastructure > Run workflow and approve the `production` environment deployment. The target resource group must already exist; the bootstrap script creates it using your signed-in Azure account. The workflow identity is intentionally scoped to that group and does not have subscription-level permission to create resource groups. The workflow deploys `infra/main.bicep`; its outputs include the ACR and Container App names. Add those output values to `AZURE_CONTAINER_REGISTRY_NAME` and `AZURE_CONTAINER_APP_NAME` in the same GitHub environment before deploying the application.
 
 ## 4. Deploy the Application
 
-Merge or push to `main`. The CI job runs Maven tests (excluding the one-off `SchemaExportTest`), frontend lint, and the Vite production build. Pull requests run validation only and never deploy. After validation, the production deployment builds and pushes the image to ACR and updates the Container App.
+Merge or push to `master`. The CI job runs Maven tests (excluding the one-off `SchemaExportTest`), frontend lint, and the Vite production build. Pull requests run validation only and never deploy. After validation, the production deployment builds and pushes the image to ACR and updates the Container App.
 
-Protect `main` with a required status check for `Build and test`. The production GitHub environment approval is required for every infrastructure or application deployment.
+Protect `master` with a required status check for `Build and test`. The production GitHub environment approval is required for every infrastructure or application deployment.
