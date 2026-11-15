@@ -43,7 +43,7 @@ Add these environment variables:
 | `POSTGRES_SKU_TIER` | PostgreSQL tier matching the selected SKU |
 | `REDIS_SKU_NAME` | Supported Azure Cache for Redis SKU |
 | `REDIS_SKU_FAMILY` | Redis SKU family matching the selected SKU |
-| `REDIS_SKU_CAPACITY` | Redis capacity matching the selected SKU |
+| `REDIS_SKU_CAPACITY` | Redis capacity matching the selected SKU; defaults to `1` if omitted |
 
 Add these environment secrets:
 

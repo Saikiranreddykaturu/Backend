@@ -38,9 +38,34 @@ jobs:
           POSTGRES_SKU_TIER: ${{ vars.POSTGRES_SKU_TIER }}
           REDIS_SKU_NAME: ${{ vars.REDIS_SKU_NAME }}
           REDIS_SKU_FAMILY: ${{ vars.REDIS_SKU_FAMILY }}
-          REDIS_SKU_CAPACITY: ${{ vars.REDIS_SKU_CAPACITY }}
+          REDIS_SKU_CAPACITY: ${{ vars.REDIS_SKU_CAPACITY || '1' }}
         run: |
           set -euo pipefail
+          required_variables=(
+            AZURE_RESOURCE_GROUP
+            AZURE_LOCATION
+            AZURE_DEPLOYMENT_NAME
+            AZURE_PIPELINE_IDENTITY_PRINCIPAL_ID
+            POSTGRES_ADMIN_USERNAME
+            POSTGRES_ADMIN_PASSWORD
+            JWT_SECRET
+            ACR_SKU_NAME
+            POSTGRES_SKU_NAME
+            POSTGRES_SKU_TIER
+            REDIS_SKU_NAME
+            REDIS_SKU_FAMILY
+            REDIS_SKU_CAPACITY
+          )
+          for variable_name in "${required_variables[@]}"; do
+            if [[ -z "${!variable_name}" ]]; then
+              echo "::error::Required production environment variable or secret is empty: $variable_name"
+              exit 1
+            fi
+          done
+          if ! [[ "$REDIS_SKU_CAPACITY" =~ ^[0-9]+$ ]]; then
+            echo '::error::REDIS_SKU_CAPACITY must be an integer matching the selected Redis SKU.'
+            exit 1
+          fi
           az deployment group create \
             --resource-group "$AZURE_RESOURCE_GROUP" \
             --name "$AZURE_DEPLOYMENT_NAME" \

@@ -71,7 +71,6 @@ resource registryPullAssignment 'Microsoft.Authorization/roleAssignments@2022-04
     principalId: appIdentity.properties.principalId
     principalType: 'ServicePrincipal'
   }
-  dependsOn: [registry, appIdentity]
 }
 
 resource registryPushAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
@@ -82,7 +81,6 @@ resource registryPushAssignment 'Microsoft.Authorization/roleAssignments@2022-04
     principalId: pipelineIdentityPrincipalId
     principalType: 'ServicePrincipal'
   }
-  dependsOn: [registry]
 }
 
 resource postgres 'Microsoft.DBforPostgreSQL/flexibleServers@2024-08-01' = {
@@ -130,12 +128,12 @@ resource postgresAzureServicesFirewall 'Microsoft.DBforPostgreSQL/flexibleServer
 resource redis 'Microsoft.Cache/redis@2024-11-01' = {
   name: 'azrd${resourceToken}'
   location: location
-  sku: {
-    name: redisSkuName
-    family: redisSkuFamily
-    capacity: redisSkuCapacity
-  }
   properties: {
+    sku: {
+      name: redisSkuName
+      family: redisSkuFamily
+      capacity: redisSkuCapacity
+    }
     enableNonSslPort: false
     minimumTlsVersion: '1.2'
     publicNetworkAccess: 'Enabled'
@@ -169,7 +167,6 @@ resource keyVaultSecretsOfficerAssignment 'Microsoft.Authorization/roleAssignmen
     principalId: appIdentity.properties.principalId
     principalType: 'ServicePrincipal'
   }
-  dependsOn: [keyVault, appIdentity]
 }
 
 resource databaseUrlSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
@@ -328,11 +325,6 @@ resource app 'Microsoft.App/containerApps@2024-03-01' = {
     registryPushAssignment
     postgresDatabase
     postgresAzureServicesFirewall
-    databaseUrlSecret
-    databaseUsernameSecret
-    databasePasswordSecret
-    jwtSecretValue
-    redisPasswordSecret
   ]
 }
 
