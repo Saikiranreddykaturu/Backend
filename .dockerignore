@@ -1,0 +1,11 @@
+.git
+.github
+.idea
+.kiro
+.vscode
+.env
+target
+logs
+**/node_modules
+frontend/dist
+*.iml

@@ -1,0 +1,36 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environmentName": {
+      "value": "production"
+    },
+    "location": {
+      "value": "placeholder"
+    },
+    "pipelineIdentityPrincipalId": {
+      "value": "00000000-0000-0000-0000-000000000000"
+    },
+    "postgresAdminUsername": {
+      "value": "placeholder"
+    },
+    "acrSkuName": {
+      "value": "placeholder"
+    },
+    "postgresSkuName": {
+      "value": "placeholder"
+    },
+    "postgresSkuTier": {
+      "value": "placeholder"
+    },
+    "redisSkuName": {
+      "value": "placeholder"
+    },
+    "redisSkuFamily": {
+      "value": "placeholder"
+    },
+    "redisSkuCapacity": {
+      "value": 1
+    }
+  }
+}
