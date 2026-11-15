@@ -27,6 +27,7 @@ jobs:
       - name: Deploy Bicep template
         env:
           AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+          AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
           AZURE_DEPLOYMENT_NAME: ${{ vars.AZURE_DEPLOYMENT_NAME }}
           AZURE_PIPELINE_IDENTITY_PRINCIPAL_ID: ${{ vars.AZURE_PIPELINE_IDENTITY_PRINCIPAL_ID }}
           POSTGRES_ADMIN_USERNAME: ${{ vars.POSTGRES_ADMIN_USERNAME }}
