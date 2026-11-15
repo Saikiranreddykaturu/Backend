@@ -38,7 +38,7 @@ Add these environment variables:
 | `AZURE_CONTAINER_APP_NAME` | `containerAppName` output from the infrastructure deployment |
 | `AZURE_IMAGE_NAME` | Image repository name, for example `ecommerce-api` |
 | `POSTGRES_ADMIN_USERNAME` | PostgreSQL administrator login name |
-| `ACR_SKU_NAME` | Supported Container Registry SKU, such as `Basic` |
+| `ACR_SKU_NAME` | Container Registry SKU; defaults to `Basic` if omitted |
 | `POSTGRES_SKU_NAME` | Region-supported PostgreSQL compute SKU |
 | `POSTGRES_SKU_TIER` | PostgreSQL tier matching the selected SKU |
 | `REDIS_SKU_NAME` | Supported Azure Cache for Redis SKU |

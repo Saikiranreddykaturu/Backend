@@ -33,7 +33,7 @@ jobs:
           POSTGRES_ADMIN_USERNAME: ${{ vars.POSTGRES_ADMIN_USERNAME }}
           POSTGRES_ADMIN_PASSWORD: ${{ secrets.POSTGRES_ADMIN_PASSWORD }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          ACR_SKU_NAME: ${{ vars.ACR_SKU_NAME }}
+          ACR_SKU_NAME: ${{ vars.ACR_SKU_NAME || 'Basic' }}
           POSTGRES_SKU_NAME: ${{ vars.POSTGRES_SKU_NAME }}
           POSTGRES_SKU_TIER: ${{ vars.POSTGRES_SKU_TIER }}
           REDIS_SKU_NAME: ${{ vars.REDIS_SKU_NAME }}
