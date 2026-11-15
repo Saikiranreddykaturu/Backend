@@ -71,6 +71,23 @@ jobs:
           AZURE_IMAGE_NAME: ${{ vars.AZURE_IMAGE_NAME }}
         run: |
           set -euo pipefail
+          trim_whitespace() {
+            local value="$1"
+            value="${value#"${value%%[![:space:]]*}"}"
+            value="${value%"${value##*[![:space:]]}"}"
+            printf '%s' "$value"
+          }
+          for variable_name in AZURE_RESOURCE_GROUP AZURE_CONTAINER_REGISTRY_NAME AZURE_CONTAINER_APP_NAME AZURE_IMAGE_NAME; do
+            printf -v "$variable_name" '%s' "$(trim_whitespace "${!variable_name}")"
+          done
+          if [[ -z "$AZURE_RESOURCE_GROUP" || -z "$AZURE_CONTAINER_REGISTRY_NAME" || -z "$AZURE_CONTAINER_APP_NAME" || -z "$AZURE_IMAGE_NAME" ]]; then
+            echo '::error::One or more required Azure deployment variables are empty after trimming whitespace.'
+            exit 1
+          fi
+          if ! [[ "$AZURE_IMAGE_NAME" =~ ^[a-z0-9]+([._/-][a-z0-9]+)*$ ]]; then
+            echo '::error::AZURE_IMAGE_NAME must be a lowercase Docker repository name without whitespace.'
+            exit 1
+          fi
           az acr login --name "$AZURE_CONTAINER_REGISTRY_NAME"
           registry_server=$(az acr show --name "$AZURE_CONTAINER_REGISTRY_NAME" --query loginServer --output tsv)
           image="$registry_server/$AZURE_IMAGE_NAME:$GITHUB_SHA"

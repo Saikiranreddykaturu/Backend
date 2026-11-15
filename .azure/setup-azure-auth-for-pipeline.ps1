@@ -68,9 +68,16 @@ if ($LASTEXITCODE -ne 0) {
 }
 $identity = $identityJson | ConvertFrom-Json
 
-$subject = "repo:${Repository}:environment:production"
+$githubRepository = Invoke-RestMethod `
+    -Uri "https://api.github.com/repos/$Repository" `
+    -Headers @{ 'User-Agent' = 'ecommerce-azure-setup'; Accept = 'application/vnd.github+json' }
+if (-not $githubRepository.id -or -not $githubRepository.owner.id) {
+    throw 'GitHub did not return repository and owner IDs for the immutable OIDC subject.'
+}
+
+$subject = "repo:$($githubRepository.owner.login)@$($githubRepository.owner.id)/$($githubRepository.name)@$($githubRepository.id):environment:production"
 Invoke-Az identity federated-credential create `
-    --name github-production `
+    --name github-production-immutable `
     --identity-name $IdentityName `
     --resource-group $IdentityResourceGroup `
     --issuer 'https://token.actions.githubusercontent.com' `

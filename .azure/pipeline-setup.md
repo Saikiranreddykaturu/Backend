@@ -15,7 +15,9 @@ Run `az login` first, then run the bootstrap script from the repository root. It
 
 If the Git repository has an `origin` pointing to GitHub, the script reads `OWNER/REPOSITORY` from it. This checkout currently has no `origin`, so pass `-Repository "OWNER/REPOSITORY"` or enter it when prompted. The location must be an Azure region supported for the resources in your subscription; change `eastus2` if needed.
 
-The script creates a user-assigned managed identity in `backend`, adds a GitHub federated credential for `repo:OWNER/REPOSITORY:environment:production`, and grants the identity `Contributor` and `User Access Administrator` on `prod`. The latter is needed because the Bicep deployment creates scoped role assignments. The Azure account running the script must have permission to grant these roles. Azure login credentials are handled by `az login`; no client secret is created or entered.
+The script creates a user-assigned managed identity in `backend`, looks up the GitHub owner/repository numeric IDs, and adds an immutable federated credential for the `production` environment. For this repository, the expected subject is `repo:Saikiranreddykaturu@105559084/Backend@1199764796:environment:production`. The script uses a new credential name so an existing name-based credential remains available during migration. It also grants the identity `Contributor` and `User Access Administrator` on `prod`. The latter is needed because the Bicep deployment creates scoped role assignments. The Azure account running the script must have permission to grant these roles. Azure login credentials are handled by `az login`; no client secret is created or entered.
+
+Before rerunning the workflow, enable immutable subject claims for the GitHub repository in its **Settings > Actions > General > OIDC** settings. Confirm the token's `sub` has the immutable format above. After a successful login with the immutable subject, remove the old name-based federated credential from the Azure identity.
 
 Copy the printed client ID, tenant ID, subscription ID, and principal ID into the GitHub variables below. Do not create a client secret; Actions authenticates with OIDC.
 
