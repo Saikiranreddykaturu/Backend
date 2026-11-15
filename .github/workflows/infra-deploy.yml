@@ -34,11 +34,11 @@ jobs:
           POSTGRES_ADMIN_PASSWORD: ${{ secrets.POSTGRES_ADMIN_PASSWORD }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           ACR_SKU_NAME: ${{ vars.ACR_SKU_NAME || 'Basic' }}
-          POSTGRES_SKU_NAME: ${{ vars.POSTGRES_SKU_NAME }}
-          POSTGRES_SKU_TIER: ${{ vars.POSTGRES_SKU_TIER }}
-          REDIS_SKU_NAME: ${{ vars.REDIS_SKU_NAME }}
-          REDIS_SKU_FAMILY: ${{ vars.REDIS_SKU_FAMILY }}
-          REDIS_SKU_CAPACITY: ${{ vars.REDIS_SKU_CAPACITY || '1' }}
+          POSTGRES_SKU_NAME: ${{ vars.POSTGRES_SKU_NAME || 'Standard_B1ms' }}
+          POSTGRES_SKU_TIER: ${{ vars.POSTGRES_SKU_TIER || 'Burstable' }}
+          REDIS_SKU_NAME: ${{ vars.REDIS_SKU_NAME || 'Standard' }}
+          REDIS_SKU_FAMILY: ${{ vars.REDIS_SKU_FAMILY || 'C' }}
+          REDIS_SKU_CAPACITY: ${{ vars.REDIS_SKU_CAPACITY || '0' }}
         run: |
           set -euo pipefail
           required_variables=(

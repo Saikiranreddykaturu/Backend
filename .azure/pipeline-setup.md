@@ -39,11 +39,11 @@ Add these environment variables:
 | `AZURE_IMAGE_NAME` | Image repository name, for example `ecommerce-api` |
 | `POSTGRES_ADMIN_USERNAME` | PostgreSQL administrator login name |
 | `ACR_SKU_NAME` | Container Registry SKU; defaults to `Basic` if omitted |
-| `POSTGRES_SKU_NAME` | Region-supported PostgreSQL compute SKU |
-| `POSTGRES_SKU_TIER` | PostgreSQL tier matching the selected SKU |
-| `REDIS_SKU_NAME` | Supported Azure Cache for Redis SKU |
-| `REDIS_SKU_FAMILY` | Redis SKU family matching the selected SKU |
-| `REDIS_SKU_CAPACITY` | Redis capacity matching the selected SKU; defaults to `1` if omitted |
+| `POSTGRES_SKU_NAME` | PostgreSQL compute SKU; defaults to `Standard_B1ms` |
+| `POSTGRES_SKU_TIER` | PostgreSQL tier; defaults to `Burstable` |
+| `REDIS_SKU_NAME` | Azure Cache for Redis SKU; defaults to `Standard` |
+| `REDIS_SKU_FAMILY` | Redis SKU family; defaults to `C` |
+| `REDIS_SKU_CAPACITY` | Redis capacity; defaults to `0` for `Standard C0` if omitted |
 
 Add these environment secrets:
 
@@ -52,7 +52,7 @@ Add these environment secrets:
 | `POSTGRES_ADMIN_PASSWORD` | Strong PostgreSQL administrator password |
 | `JWT_SECRET` | Random signing key of at least 32 bytes |
 
-Choose region and SKUs supported by the target subscription. The checked-in `infra/main.parameters.json` contains placeholders and is not sufficient by itself; the infrastructure workflow supplies these environment values as parameter overrides.
+The SKU defaults are small starter tiers, not a production capacity recommendation. Verify they are available in your selected region and override them for your expected workload. The checked-in `infra/main.parameters.json` contains placeholders and is not sufficient by itself; the infrastructure workflow supplies these environment values as parameter overrides.
 
 ## 3. Provision Azure Resources
 
